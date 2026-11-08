@@ -1,409 +1,786 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#020617">
-<title>Aura Notes</title>
-<style>
-:root{--glass:rgba(255,255,255,.04);--border:rgba(255,255,255,.09);--accent:#8b5cf6;--accent2:#6d28d9;--muted:#94a3b8;--text:#f8fafc;--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;overscroll-behavior:none}
-body{font-family:system-ui,-apple-system,Roboto,"Segoe UI",sans-serif;color:var(--text);background:#020617;
-  background-image:radial-gradient(circle at 15% 50%,rgba(76,29,149,.18),transparent 50%),radial-gradient(circle at 85% 30%,rgba(30,58,138,.18),transparent 50%);
-  background-attachment:fixed;transition:background-color .5s}
-body.focus{background:#000}
-button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
-input,textarea{font:inherit;color:inherit;border:0;outline:0;background:none}
-svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
-.app{position:fixed;inset:0;display:flex;flex-direction:column}
-.glass{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border)}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aura Notes | Startup Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent: #8b5cf6; /* Violet 500 */
+            --accent-glow: rgba(139, 92, 246, 0.5);
+        }
 
-/* Nav */
-nav{order:2;display:flex;justify-content:space-around;align-items:stretch;padding:6px 6px calc(6px + var(--sab));border-width:1px 0 0;z-index:30;transition:opacity .5s,transform .5s}
-.brand{display:none}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:14px;color:var(--muted);font-size:10px;font-weight:500;transition:.2s}
-.nav-item.active{color:#fff;background:linear-gradient(to bottom,rgba(139,92,246,.25),transparent)}
-.nav-item.trash.active{color:#fca5a5}
-.spacer{display:none}
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #020617; /* Slate 950 */
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(30, 58, 138, 0.15) 0%, transparent 50%);
+            background-attachment: fixed;
+            color: #f8fafc;
+            overflow: hidden; 
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.5s ease;
+        }
 
-/* Main */
-main{order:1;flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
-header{padding:calc(var(--sat) + 22px) 22px 10px;flex:none;transition:opacity .5s,transform .5s}
-header h1{font-size:30px;font-weight:600;letter-spacing:-.5px}
-header p{color:var(--muted);margin-top:4px;font-size:14px}
-.tools{display:flex;gap:10px;margin-top:14px;align-items:center}
-.search{flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:14px}
-.search input{flex:1;min-width:0;font-size:15px;-webkit-user-select:text;user-select:text}
-.search input::placeholder{color:#64748b}
-.pill{padding:10px 16px;border-radius:14px;font-size:14px;font-weight:500;background:rgba(239,68,68,.15);color:#fca5a5}
-.hidden{display:none!important}
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+        }
 
-.view{display:none;flex:1;min-height:0;overflow-y:auto;padding:8px 22px calc(110px + var(--sab));-webkit-overflow-scrolling:touch}
-.view.active{display:block}
-.view::-webkit-scrollbar{width:0}
+        .glass-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-/* Notes grid */
-.grid{display:grid;grid-template-columns:1fr;gap:14px}
-.card{background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.015));border:1px solid var(--border);border-radius:20px;padding:16px;display:flex;flex-direction:column;box-shadow:0 8px 28px rgba(0,0,0,.3);animation:in .35s ease-out both}
-.card:active{transform:scale(.99)}
-@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.card-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
-.card h3{font-size:17px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.acts{display:flex;gap:6px;flex:none}
-.acts button{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;color:var(--muted)}
-.acts button svg{width:16px;height:16px}
-.acts button:active{background:rgba(255,255,255,.18);color:#fff}
-.acts .danger:active{color:#f87171}.acts .ok:active{color:#34d399}
-.card p{color:#cbd5e1;font-size:14px;line-height:1.55;margin-top:8px;font-weight:300;white-space:pre-wrap;word-break:break-word;flex:1}
-.card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);font-size:12px;color:#64748b}
-.chip{padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.07);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
-.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:240px;color:#64748b;text-align:center;gap:10px}
-.empty .ic{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center}
-.empty .ic svg{width:30px;height:30px;opacity:.5}
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4), 0 0 20px 0 rgba(139, 92, 246, 0.1);
+        }
 
-/* FAB */
-.fab{position:fixed;right:20px;bottom:calc(84px + var(--sab));width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;z-index:40;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 22px rgba(139,92,246,.55);transition:transform .2s}
-.fab:active{transform:scale(.92)}.fab svg{width:28px;height:28px;stroke-width:2.4}
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
-/* Matrix */
-.matrix{display:flex;flex-direction:column;gap:14px}
-.side{border-radius:20px;display:flex;flex-direction:column;max-height:220px}
-.side-h{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.05);border-radius:20px 20px 0 0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#cbd5e1;font-weight:500}
-.count{background:rgba(255,255,255,.12);padding:2px 8px;border-radius:6px;font-size:12px;color:#fff}
-.quad{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.q{border-radius:18px;display:flex;flex-direction:column;overflow:hidden;min-height:190px;border-top-width:2px}
-.q-h{padding:10px 6px;text-align:center;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;line-height:1.3}
-.q1{border-top-color:rgba(239,68,68,.6)}.q1 .q-h{background:rgba(239,68,68,.12);color:#fecaca}
-.q2{border-top-color:rgba(59,130,246,.6)}.q2 .q-h{background:rgba(59,130,246,.12);color:#bfdbfe}
-.q3{border-top-color:rgba(234,179,8,.6)}.q3 .q-h{background:rgba(234,179,8,.12);color:#fef08a}
-.q4{border-top-color:rgba(100,116,139,.6)}.q4 .q-h{background:rgba(100,116,139,.12);color:#cbd5e1}
-.zone{flex:1;padding:8px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;border:2px dashed transparent;border-radius:12px;margin:4px;transition:.2s}
-.zone.over{border-color:var(--accent);background:rgba(139,92,246,.1)}
-.mini{padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.05)}
-.mini:active{background:rgba(255,255,255,.12)}
-.mini.drag{opacity:.5}
-.mini h4{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mini p{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
-.hint{font-size:12px;color:#64748b;text-align:center;margin-top:10px}
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 
-/* Zen */
-.zen{display:flex;flex-direction:column;height:100%;min-height:440px;max-width:760px;margin:0 auto;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:24px;padding:20px}
-.zen-top{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.1)}
-.timer{font-size:42px;font-weight:300;font-variant-numeric:tabular-nums;letter-spacing:-1px}
-.btn{padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;background:rgba(255,255,255,.1);color:#cbd5e1}
-.btn:active{opacity:.7}
-.btn.p{background:var(--accent2);color:#fff}.btn.r{background:#dc2626;color:#fff}.btn.g{background:#059669;color:#fff}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.durs{display:flex;gap:6px;margin-bottom:14px}
-.durs button{padding:6px 12px;border-radius:99px;font-size:12px;background:rgba(255,255,255,.07);color:var(--muted)}
-.durs button.on{background:rgba(139,92,246,.3);color:#fff}
-.zen-title{font:500 26px Georgia,'Times New Roman',serif;width:100%;margin-bottom:14px;-webkit-user-select:text;user-select:text}
-.zen-text{font:300 19px/1.7 Georgia,'Times New Roman',serif;color:#cbd5e1;width:100%;flex:1;resize:none;min-height:180px;-webkit-user-select:text;user-select:text}
-.zen-title::placeholder,.zen-text::placeholder{color:#475569}
-body.focus nav,body.focus header{opacity:0;pointer-events:none}
-body.focus nav{transform:translateY(100%)}body.focus header{transform:translateY(-20px)}
-body.focus .durs{visibility:hidden}
+        /* Floating Action Button */
+        .fab {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            box-shadow: 0 0 20px var(--accent-glow);
+            transition: all 0.3s ease;
+        }
+        .fab:hover { transform: scale(1.05) rotate(90deg); box-shadow: 0 0 30px var(--accent-glow); }
+        .fab:active { transform: scale(0.95); }
 
-/* Modal / sheets */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:60;display:none;align-items:flex-end;justify-content:center}
-.modal.show{display:flex}
-.sheet{width:100%;max-width:640px;background:#0f172a;border:1px solid var(--border);border-radius:26px 26px 0 0;overflow:hidden;animation:up .25s ease-out;padding-bottom:var(--sab)}
-@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
-.sheet-h{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.08);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#a78bfa;font-weight:500}
-.sheet-b{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
-.in-title{font-size:22px;font-weight:600;width:100%;-webkit-user-select:text;user-select:text}
-.in-text{font-size:16px;line-height:1.6;color:#cbd5e1;width:100%;height:180px;resize:none;-webkit-user-select:text;user-select:text}
-.in-title::placeholder,.in-text::placeholder{color:#64748b}
-.sheet-f{padding:14px 20px;display:flex;justify-content:flex-end;gap:10px;background:rgba(0,0,0,.35)}
-.mv{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.05);font-size:15px;text-align:left;width:100%}
-.mv.cur{outline:2px solid var(--accent)}
-.dot{width:10px;height:10px;border-radius:50%;flex:none}
+        /* Nav Item Active State */
+        .nav-item { transition: all 0.2s ease; }
+        .nav-item.active { background: rgba(255, 255, 255, 0.1); border-left: 3px solid var(--accent); color: #fff; }
+        @media (max-width: 768px) {
+            .nav-item.active { border-left: none; border-top: 3px solid var(--accent); background: linear-gradient(to bottom, rgba(139, 92, 246, 0.2) 0%, transparent 100%); }
+        }
 
-.toast{position:fixed;left:50%;bottom:calc(150px + var(--sab));transform:translate(-50%,20px);background:#1e293b;border:1px solid var(--border);padding:10px 18px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:90;white-space:nowrap}
-.toast.show{opacity:1;transform:translate(-50%,0)}
+        /* Matrix Drag & Drop Styles */
+        .matrix-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .matrix-zone.drag-over {
+            border-color: var(--accent);
+            background-color: rgba(139, 92, 246, 0.1);
+        }
+        .mini-card {
+            cursor: grab;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .mini-card:active { cursor: grabbing; }
+        .mini-card.dragging { opacity: 0.5; transform: scale(0.95); }
 
-/* Tablet / desktop */
-@media(min-width:768px){
-  .app{flex-direction:row}
-  nav{order:0;width:240px;flex-direction:column;justify-content:flex-start;padding:28px 14px;border-width:0 1px 0 0;gap:6px}
-  .brand{display:flex;align-items:center;gap:12px;padding:0 12px;margin-bottom:26px;font-size:20px;font-weight:600}
-  .brand i{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#4f46e5);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(139,92,246,.35)}
-  .nav-item{flex:none;flex-direction:row;gap:12px;padding:12px 14px;font-size:15px}
-  .nav-item.active{background:rgba(255,255,255,.1);box-shadow:inset 3px 0 var(--accent)}
-  .nav-item.trash{margin-top:auto}
-  header,.view{padding-left:40px;padding-right:40px}
-  .grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
-  .fab{bottom:36px;right:40px}
-  .view{padding-bottom:110px}
-  .matrix{flex-direction:row;height:100%}
-  .side{width:250px;max-height:none;flex:none}
-  .quad{flex:1;grid-template-rows:1fr 1fr}
-  .toast{bottom:40px}
-}
-</style>
+        /* Zen Flow Mode Styles */
+        body.zen-focus-active {
+            background-color: #000;
+            background-image: none;
+        }
+        body.zen-focus-active .nav-panel,
+        body.zen-focus-active .app-header {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-20px);
+        }
+        .zen-textarea {
+            font-family: 'Playfair Display', serif;
+            transition: all 0.5s ease;
+        }
+        .zen-transition {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        /* View Containers */
+        .view-container {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .view-container.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Touch support (no visual change on desktop) */
+        @media (hover: none) { .card-actions { opacity: 1 !important; } }
+        .mini-card { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        .touch-ghost { position: fixed; z-index: 200; pointer-events: none; width: 180px; opacity: .9; transform: scale(1.03); }
+    </style>
 </head>
-<body>
-<div class="app">
+<body class="flex flex-col md:flex-row h-screen w-full">
 
-<nav class="glass">
-  <div class="brand"><i><svg viewBox="0 0 24 24" style="stroke-width:2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></i>Notes</div>
-  <button class="nav-item active" data-tab="inbox"><svg viewBox="0 0 24 24"><path d="M20 13V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7m16 0v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5m16 0h-4l-2 2h-4l-2-2H4"/></svg><span>Inbox</span></button>
-  <button class="nav-item" data-tab="matrix"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="2"/><rect x="14" y="4" width="6" height="6" rx="2"/><rect x="4" y="14" width="6" height="6" rx="2"/><rect x="14" y="14" width="6" height="6" rx="2"/></svg><span>Matrix</span></button>
-  <button class="nav-item" data-tab="zenflow"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.4 6.4-.7-.7M6.3 6.3l-.7-.7m12.8 0-.7.7M6.3 17.7l-.7.7"/></svg><span>Zen Flow</span></button>
-  <button class="nav-item trash" data-tab="trash"><svg viewBox="0 0 24 24"><path d="M19 7l-.9 12.1A2 2 0 0 1 16.1 21H7.9a2 2 0 0 1-2-1.9L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"/></svg><span>Trash</span></button>
-</nav>
-
-<main>
-  <header>
-    <h1 id="title">Inbox</h1>
-    <p id="subtitle">All your captured thoughts.</p>
-    <div class="tools" id="tools">
-      <label class="search glass" id="searchBox"><svg viewBox="0 0 24 24" style="width:18px;height:18px;color:#64748b"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="search" type="search" placeholder="Search notes" autocomplete="off"></label>
-      <button class="pill hidden" id="emptyTrash">Empty trash</button>
-    </div>
-  </header>
-
-  <!-- Inbox / Trash -->
-  <section class="view active" id="view-grid">
-    <div id="empty" class="empty hidden"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 13V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7m16 0v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5m16 0h-4l-2 2h-4l-2-2H4"/></svg></div><div id="emptyText" style="font-size:17px;color:#cbd5e1">No notes here</div></div>
-    <div class="grid" id="grid"></div>
-  </section>
-
-  <!-- Matrix -->
-  <section class="view" id="view-matrix">
-    <div class="matrix">
-      <div class="side glass">
-        <div class="side-h"><span>Unassigned</span><span class="count" id="uCount">0</span></div>
-        <div class="zone" id="zone-unassigned" data-zone="unassigned"></div>
-      </div>
-      <div class="quad">
-        <div class="q q1 glass"><div class="q-h">Do First<br>Urgent &amp; Important</div><div class="zone" id="zone-q1" data-zone="q1"></div></div>
-        <div class="q q2 glass"><div class="q-h">Schedule<br>Not Urgent &amp; Important</div><div class="zone" id="zone-q2" data-zone="q2"></div></div>
-        <div class="q q3 glass"><div class="q-h">Delegate<br>Urgent &amp; Not Important</div><div class="zone" id="zone-q3" data-zone="q3"></div></div>
-        <div class="q q4 glass"><div class="q-h">Eliminate<br>Neither</div><div class="zone" id="zone-q4" data-zone="q4"></div></div>
-      </div>
-    </div>
-    <p class="hint">Tap a note to choose where it goes.</p>
-  </section>
-
-  <!-- Zen -->
-  <section class="view" id="view-zenflow">
-    <div class="zen">
-      <div class="durs" id="durs"><button data-m="15">15 min</button><button data-m="25" class="on">25 min</button><button data-m="50">50 min</button></div>
-      <div class="zen-top">
-        <div class="row" style="gap:14px">
-          <div class="timer" id="zenTime">25:00</div>
-          <div class="row"><button class="btn p" id="zenToggle">Start Focus</button><button class="btn" id="zenReset">Reset</button></div>
+    <!-- Navigation -->
+    <nav class="nav-panel glass-panel w-full md:w-64 h-16 md:h-full fixed bottom-0 md:relative z-40 flex md:flex-col justify-around md:justify-start pt-0 md:pt-8 border-t md:border-t-0 md:border-r border-white/10 zen-transition">
+        
+        <div class="hidden md:flex items-center gap-3 px-6 mb-10 text-white font-semibold text-xl tracking-wide">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            Aura Notes
         </div>
-        <button class="btn g" id="zenSave">Save to Inbox</button>
-      </div>
-      <input class="zen-title" id="zenTitle" placeholder="What are you focusing on?" autocomplete="off">
-      <textarea class="zen-text" id="zenText" placeholder="Start writing... The world will fade away."></textarea>
+
+        <div class="flex md:flex-col w-full px-2 md:px-4 md:gap-2 h-full md:h-auto items-center md:items-stretch">
+            
+            <button onclick="switchTab('inbox')" id="tab-inbox" class="nav-item active flex-1 md:flex-none flex md:justify-start justify-center items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
+                <svg class="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                <span class="hidden md:block font-medium">Inbox</span>
+            </button>
+
+            <button onclick="switchTab('matrix')" id="tab-matrix" class="nav-item flex-1 md:flex-none flex md:justify-start justify-center items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
+                <svg class="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span class="hidden md:block font-medium">Matrix</span>
+            </button>
+
+            <button onclick="switchTab('zenflow')" id="tab-zenflow" class="nav-item flex-1 md:flex-none flex md:justify-start justify-center items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
+                <svg class="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <span class="hidden md:block font-medium">Zen Flow</span>
+            </button>
+
+            <!-- Spacer for mobile FAB -->
+            <div class="w-16 md:hidden"></div>
+
+            <button onclick="switchTab('trash')" id="tab-trash" class="nav-item flex-1 md:flex-none flex md:justify-start justify-center items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-red-400 hover:bg-white/5 mt-0 md:mt-auto md:mb-6">
+                <svg class="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <span class="hidden md:block font-medium">Trash</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 h-[calc(100vh-4rem)] md:h-screen overflow-hidden flex flex-col relative">
+        
+        <!-- Header -->
+        <header class="app-header pt-10 md:pt-12 px-8 pb-4 shrink-0 zen-transition">
+            <h1 id="page-title" class="text-3xl md:text-4xl font-semibold tracking-tight">Inbox</h1>
+            <p id="page-subtitle" class="text-slate-400 mt-2">All your captured thoughts.</p>
+        </header>
+
+        <!-- VIEW 1 & 4: INBOX & TRASH (Standard Grid) -->
+        <div id="view-grid" class="view-container active flex-1 flex-col overflow-hidden">
+            <div class="flex-1 overflow-y-auto custom-scroll px-8 pb-32 md:pb-12">
+                <div id="empty-state" class="hidden flex flex-col items-center justify-center h-64 text-slate-500 text-center opacity-0 transition-opacity duration-300">
+                    <div class="w-16 h-16 mb-4 rounded-full bg-white/5 flex items-center justify-center border border-white/5">
+                        <svg class="w-8 h-8 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-slate-300">No notes here</h3>
+                </div>
+                <div id="notes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-max">
+                    <!-- Notes injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: MATRIX -->
+        <div id="view-matrix" class="view-container flex-1 overflow-hidden px-8 pb-24 md:pb-8 gap-6 flex-col md:flex-row">
+            <!-- Sidebar: Unassigned Notes -->
+            <div class="w-full md:w-64 glass-panel rounded-2xl flex flex-col h-1/3 md:h-full shrink-0">
+                <div class="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                    <h3 class="font-medium text-sm tracking-wider text-slate-300 uppercase">Unassigned</h3>
+                    <span id="unassigned-count" class="bg-white/10 text-white text-xs px-2 py-1 rounded-md">0</span>
+                </div>
+                <div id="zone-unassigned" data-zone="unassigned" class="matrix-zone flex-1 p-3 overflow-y-auto custom-scroll flex flex-col gap-3 border-none bg-transparent">
+                    <!-- Unassigned Mini Cards -->
+                </div>
+            </div>
+
+            <!-- The 2x2 Grid -->
+            <div class="flex-1 grid grid-cols-2 grid-rows-2 gap-4 min-h-[400px]">
+                <!-- Q1: Urgent & Important -->
+                <div class="glass-panel rounded-2xl flex flex-col overflow-hidden border-t-2 border-t-red-500/50">
+                    <div class="bg-red-500/10 p-3 text-xs font-semibold text-red-200 uppercase tracking-wider text-center border-b border-white/5">Do First (Urgent & Important)</div>
+                    <div id="zone-q1" data-zone="q1" class="matrix-zone flex-1 p-3 overflow-y-auto custom-scroll flex flex-col gap-2"></div>
+                </div>
+                <!-- Q2: Not Urgent & Important -->
+                <div class="glass-panel rounded-2xl flex flex-col overflow-hidden border-t-2 border-t-blue-500/50">
+                    <div class="bg-blue-500/10 p-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center border-b border-white/5">Schedule (Not Urgent & Important)</div>
+                    <div id="zone-q2" data-zone="q2" class="matrix-zone flex-1 p-3 overflow-y-auto custom-scroll flex flex-col gap-2"></div>
+                </div>
+                <!-- Q3: Urgent & Not Important -->
+                <div class="glass-panel rounded-2xl flex flex-col overflow-hidden border-t-2 border-t-yellow-500/50">
+                    <div class="bg-yellow-500/10 p-3 text-xs font-semibold text-yellow-200 uppercase tracking-wider text-center border-b border-white/5">Delegate (Urgent & Not Important)</div>
+                    <div id="zone-q3" data-zone="q3" class="matrix-zone flex-1 p-3 overflow-y-auto custom-scroll flex flex-col gap-2"></div>
+                </div>
+                <!-- Q4: Not Urgent & Not Important -->
+                <div class="glass-panel rounded-2xl flex flex-col overflow-hidden border-t-2 border-t-slate-500/50">
+                    <div class="bg-slate-500/10 p-3 text-xs font-semibold text-slate-300 uppercase tracking-wider text-center border-b border-white/5">Eliminate (Neither)</div>
+                    <div id="zone-q4" data-zone="q4" class="matrix-zone flex-1 p-3 overflow-y-auto custom-scroll flex flex-col gap-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: ZEN FLOW -->
+        <div id="view-zenflow" class="view-container flex-1 flex-col items-center justify-center px-4 md:px-20 pb-24 md:pb-12 h-full">
+            <div class="w-full max-w-3xl flex flex-col h-full bg-black/20 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl relative overflow-hidden transition-all duration-500" id="zen-container">
+                
+                <!-- Timer Header -->
+                <div class="flex justify-between items-center mb-8 pb-6 border-b border-white/10">
+                    <div class="flex items-center gap-4">
+                        <div class="text-4xl font-light tabular-nums tracking-tight text-white" id="zen-timer-display">25:00</div>
+                        <div class="flex gap-2">
+                            <button id="zen-btn-toggle" onclick="toggleZenTimer()" class="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors">Start Focus</button>
+                            <button onclick="resetZenTimer()" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-sm font-medium transition-colors">Reset</button>
+                        </div>
+                    </div>
+                    <button onclick="saveZenNote()" class="px-6 py-2 rounded-lg bg-emerald-600/90 hover:bg-emerald-500 text-white text-sm font-medium transition-all shadow-lg shadow-emerald-900/50 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Save to Inbox
+                    </button>
+                </div>
+
+                <!-- Writing Area -->
+                <input type="text" id="zen-input-title" placeholder="What are you focusing on?" class="w-full bg-transparent border-none outline-none text-3xl font-medium text-white placeholder-slate-600 mb-6 zen-textarea">
+                
+                <textarea id="zen-input-content" placeholder="Start writing... The world will fade away." class="w-full flex-1 bg-transparent border-none outline-none text-slate-300 placeholder-slate-700 resize-none custom-scroll text-xl leading-relaxed zen-textarea"></textarea>
+            </div>
+        </div>
+
+        <!-- Floating Action Button (Only on Inbox) -->
+        <button id="fab-add" onclick="openModal()" class="fab fixed bottom-24 md:bottom-12 right-6 md:right-12 w-14 h-14 rounded-full flex items-center justify-center text-white z-50">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+        </button>
+
+    </main>
+
+    <!-- Note Modal (For Inbox Edit/Create) -->
+    <div id="note-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300 px-4">
+        <div id="modal-content" class="glass-card w-full max-w-2xl rounded-2xl overflow-hidden flex flex-col scale-95 transition-transform duration-300">
+            <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                <span id="modal-title-text" class="text-sm font-medium text-violet-400 uppercase tracking-wider">Create Note</span>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 flex flex-col gap-4">
+                <input type="hidden" id="modal-note-id">
+                <input type="text" id="modal-input-title" placeholder="Note Title" class="w-full bg-transparent border-none outline-none text-2xl font-semibold text-white placeholder-slate-500">
+                <textarea id="modal-input-content" placeholder="Write your ideas here..." class="w-full bg-transparent border-none outline-none text-slate-300 placeholder-slate-600 resize-none h-48 custom-scroll text-lg leading-relaxed"></textarea>
+            </div>
+            <div class="px-6 py-4 bg-black/40 flex justify-end gap-3 border-t border-white/5">
+                <button onclick="closeModal()" class="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-white/10 transition-colors">Cancel</button>
+                <button onclick="saveNote()" class="px-6 py-2.5 rounded-xl text-sm font-medium bg-violet-600 hover:bg-violet-500 text-white transition-colors shadow-lg shadow-violet-500/20">Save Note</button>
+            </div>
+        </div>
     </div>
-  </section>
 
-  <button class="fab" id="fab" aria-label="New note"><svg viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg></button>
-</main>
-</div>
+    <script>
+        // --- Core Data & State ---
+        const STORAGE_KEY = 'aura_notes_db_v2';
+        let notes = [];
+        let currentTab = 'inbox'; 
 
-<!-- Note modal -->
-<div class="modal" id="noteModal"><div class="sheet">
-  <div class="sheet-h"><span id="noteModalTitle">Create Note</span><button id="noteClose" style="color:#94a3b8" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6l12 12"/></svg></button></div>
-  <div class="sheet-b">
-    <input type="hidden" id="noteId">
-    <input class="in-title" id="noteTitle" placeholder="Note Title" maxlength="120" autocomplete="off">
-    <textarea class="in-text" id="noteText" placeholder="Write your ideas here..."></textarea>
-  </div>
-  <div class="sheet-f"><button class="btn" id="noteCancel">Cancel</button><button class="btn p" id="noteSave">Save Note</button></div>
-</div></div>
+        // DOM Lookups
+        const pageTitle = document.getElementById('page-title');
+        const pageSubtitle = document.getElementById('page-subtitle');
+        const fab = document.getElementById('fab-add');
+        const viewGrid = document.getElementById('view-grid');
+        const viewMatrix = document.getElementById('view-matrix');
+        const viewZenflow = document.getElementById('view-zenflow');
+        const notesGrid = document.getElementById('notes-grid');
+        const emptyState = document.getElementById('empty-state');
 
-<!-- Move sheet -->
-<div class="modal" id="moveModal"><div class="sheet">
-  <div class="sheet-h"><span>Move to</span><button id="moveClose" style="color:#94a3b8" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 18 18 6M6 6l12 12"/></svg></button></div>
-  <div class="sheet-b" id="moveList"></div>
-</div></div>
+        const tabsData = {
+            'inbox': { title: 'Inbox', subtitle: 'All your captured thoughts.', view: viewGrid },
+            'matrix': { title: 'Eisenhower Matrix', subtitle: 'Drag & Drop to prioritize your tasks.', view: viewMatrix },
+            'zenflow': { title: 'Zen Flow', subtitle: 'Distraction-free focus environment.', view: viewZenflow },
+            'trash': { title: 'Trash', subtitle: 'Deleted items ready for recovery or purge.', view: viewGrid }
+        };
 
-<div class="toast" id="toast"></div>
+        // --- Init ---
+        function init() {
+            loadNotes();
+            setupDragAndDrop();
+            switchTab('inbox');
+        }
 
-<script>
-const KEY='aura_notes_db_v2', DRAFT='aura_zen_draft';
-const $=id=>document.getElementById(id);
-const ZONES=[['unassigned','Unassigned','#64748b'],['q1','Do First','#ef4444'],['q2','Schedule','#3b82f6'],['q3','Delegate','#eab308'],['q4','Eliminate','#94a3b8']];
-const TABS={
-  inbox:{t:'Inbox',s:'All your captured thoughts.',v:'view-grid'},
-  matrix:{t:'Eisenhower Matrix',s:'Prioritize your notes.',v:'view-matrix'},
-  zenflow:{t:'Zen Flow',s:'Distraction-free focus.',v:'view-zenflow'},
-  trash:{t:'Trash',s:'Restore notes or delete them forever.',v:'view-grid'}
-};
-let notes=[],tab='inbox',query='';
+        function loadNotes() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try { notes = JSON.parse(stored); } catch (e) { notes = []; }
+            }
+            // Ensure schema migration if old notes exist
+            notes = notes.map(n => ({
+                ...n,
+                matrixZone: n.matrixZone || 'unassigned',
+                isTrashed: n.isTrashed || false
+            }));
+        }
 
-const ls={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function load(){
-  try{notes=JSON.parse(ls.get(KEY))||[]}catch{notes=[]}
-  if(!Array.isArray(notes))notes=[];
-  notes=notes.map(n=>({id:n.id||uid(),title:n.title||'',content:n.content||'',matrixZone:ZONES.some(z=>z[0]===n.matrixZone)?n.matrixZone:'unassigned',isTrashed:!!n.isTrashed,updatedAt:n.updatedAt||Date.now()}));
-}
-const persist=()=>ls.set(KEY,JSON.stringify(notes));
+        function saveToLocalStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+        }
 
-/* Toast / sound */
-let toastT;
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1800)}
-let actx;
-function unlock(){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();actx.resume()}catch{}}
-document.addEventListener('touchstart',unlock,{once:true});document.addEventListener('click',unlock,{once:true});
-function beep(n=3){try{unlock();for(let i=0;i<n;i++){const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+i*.4;o.frequency.value=660;g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.3)}}catch{}
-  if(navigator.vibrate)navigator.vibrate([250,120,250])}
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
 
-/* Navigation */
-function switchTab(id){
-  tab=id;
-  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
-  $('title').textContent=TABS[id].t;$('subtitle').textContent=TABS[id].s;
-  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===TABS[id].v));
-  $('fab').classList.toggle('hidden',id!=='inbox');
-  $('searchBox').classList.toggle('hidden',id!=='inbox'&&id!=='trash');
-  $('tools').classList.toggle('hidden',id==='matrix'||id==='zenflow');
-  $('emptyTrash').classList.toggle('hidden',id!=='trash'||!notes.some(n=>n.isTrashed));
-  if(id==='inbox'||id==='trash')renderGrid();
-  if(id==='matrix')renderMatrix();
-}
-document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+        // --- Navigation ---
+        function switchTab(tabId) {
+            currentTab = tabId;
+            
+            // Nav UI
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
 
-/* Inbox / Trash */
-const ICON={
-  edit:'<svg viewBox="0 0 24 24"><path d="m15.2 5.2 3.6 3.6M16.7 3.7a2.5 2.5 0 1 1 3.6 3.6L6.5 21H3v-3.6z"/></svg>',
-  trash:'<svg viewBox="0 0 24 24"><path d="M19 7l-.9 12.1A2 2 0 0 1 16.1 21H7.9a2 2 0 0 1-2-1.9L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"/></svg>',
-  restore:'<svg viewBox="0 0 24 24"><path d="M3 10h10a8 8 0 0 1 8 8v2M3 10l6 6m-6-6 6-6"/></svg>'
-};
-function renderGrid(){
-  const trash=tab==='trash',q=query.trim().toLowerCase();
-  const list=notes.filter(n=>n.isTrashed===trash&&(!q||(n.title+' '+n.content).toLowerCase().includes(q))).sort((a,b)=>b.updatedAt-a.updatedAt);
-  $('empty').classList.toggle('hidden',list.length>0);
-  $('emptyText').textContent=q?'No matching notes':trash?'Trash is empty':'No notes yet — tap + to add one';
-  $('emptyTrash').classList.toggle('hidden',!trash||!notes.some(n=>n.isTrashed));
-  $('grid').innerHTML=list.map((n,i)=>{
-    const acts=trash
-      ?`<button class="ok" data-a="restore" aria-label="Restore">${ICON.restore}</button><button class="danger" data-a="purge" aria-label="Delete forever">${ICON.trash}</button>`
-      :`<button data-a="edit" aria-label="Edit">${ICON.edit}</button><button class="danger" data-a="trash" aria-label="Move to trash">${ICON.trash}</button>`;
-    const zone=n.matrixZone!=='unassigned'&&!trash?`<span class="chip">${esc(ZONES.find(z=>z[0]===n.matrixZone)[1])}</span>`:'';
-    const c=n.content.length>150?n.content.slice(0,150)+'…':n.content;
-    return`<article class="card" data-id="${n.id}" style="animation-delay:${Math.min(i,10)*.04}s"><div class="card-top"><h3>${esc(n.title||'Untitled Note')}</h3><div class="acts">${acts}</div></div><p>${esc(c)}</p><div class="card-foot"><span>${new Date(n.updatedAt).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</span>${zone}</div></article>`}).join('');
-}
-$('grid').addEventListener('click',e=>{
-  const card=e.target.closest('.card');if(!card)return;
-  const id=card.dataset.id,btn=e.target.closest('button[data-a]');
-  const a=btn?btn.dataset.a:(tab==='inbox'?'edit':'');
-  if(a==='edit')openNote(id);
-  else if(a==='trash'){setNote(id,{isTrashed:true});toast('Moved to Trash');renderGrid()}
-  else if(a==='restore'){setNote(id,{isTrashed:false});toast('Restored');renderGrid()}
-  else if(a==='purge'){if(confirm('Permanently delete this note? This cannot be undone.')){notes=notes.filter(n=>n.id!==id);persist();renderGrid()}}
-});
-$('emptyTrash').onclick=()=>{if(confirm('Permanently delete everything in Trash?')){notes=notes.filter(n=>!n.isTrashed);persist();renderGrid()}};
-$('search').addEventListener('input',e=>{query=e.target.value;renderGrid()});
-function setNote(id,patch){const n=notes.find(x=>x.id===id);if(n){Object.assign(n,patch);if(!('matrixZone' in patch)&&!('isTrashed' in patch))n.updatedAt=Date.now();persist()}}
+            // Header UI
+            pageTitle.textContent = tabsData[tabId].title;
+            pageSubtitle.textContent = tabsData[tabId].subtitle;
 
-/* Note modal */
-const open=(id)=>$(id).classList.add('show'), close=(id)=>$(id).classList.remove('show');
-function openNote(id){
-  const n=id&&notes.find(x=>x.id===id);
-  $('noteId').value=n?n.id:'';$('noteTitle').value=n?n.title:'';$('noteText').value=n?n.content:'';
-  $('noteModalTitle').textContent=n?'Edit Note':'Create Note';
-  open('noteModal');setTimeout(()=>$('noteTitle').focus(),150);
-}
-$('fab').onclick=()=>openNote();
-$('noteClose').onclick=$('noteCancel').onclick=()=>close('noteModal');
-$('noteModal').addEventListener('click',e=>{if(e.target.id==='noteModal')close('noteModal')});
-$('noteSave').onclick=()=>{
-  const id=$('noteId').value,title=$('noteTitle').value.trim(),content=$('noteText').value.trim();
-  if(!title&&!content){close('noteModal');return}
-  if(id)setNote(id,{title,content});
-  else notes.push({id:uid(),title,content,matrixZone:'unassigned',isTrashed:false,updatedAt:Date.now()});
-  persist();close('noteModal');renderGrid();toast('Saved');
-};
+            // View Management
+            document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+            tabsData[tabId].view.classList.add('active');
 
-/* Matrix */
-const fine=window.matchMedia&&matchMedia('(pointer:fine)').matches;
-function renderMatrix(){
-  ZONES.forEach(z=>$('zone-'+z[0]).innerHTML='');
-  let u=0;
-  notes.filter(n=>!n.isTrashed).sort((a,b)=>b.updatedAt-a.updatedAt).forEach(n=>{
-    if(n.matrixZone==='unassigned')u++;
-    $('zone-'+n.matrixZone).insertAdjacentHTML('beforeend',`<div class="mini" data-id="${n.id}" ${fine?'draggable="true"':''}><h4>${esc(n.title||'Untitled')}</h4><p>${esc(n.content)}</p></div>`);
-  });
-  $('uCount').textContent=u;
-  ZONES.forEach(z=>{const el=$('zone-'+z[0]);if(!el.children.length&&z[0]!=='unassigned')el.innerHTML='<div class="hint" style="margin:auto">Empty</div>'});
-}
-let moveId=null;
-$('view-matrix').addEventListener('click',e=>{
-  const m=e.target.closest('.mini');if(!m)return;
-  moveId=m.dataset.id;const cur=notes.find(n=>n.id===moveId)?.matrixZone;
-  $('moveList').innerHTML=ZONES.map(z=>`<button class="mv ${z[0]===cur?'cur':''}" data-z="${z[0]}"><span class="dot" style="background:${z[2]}"></span>${z[1]}</button>`).join('');
-  open('moveModal');
-});
-$('moveList').addEventListener('click',e=>{const b=e.target.closest('.mv');if(!b)return;setNote(moveId,{matrixZone:b.dataset.z});close('moveModal');renderMatrix()});
-$('moveClose').onclick=()=>close('moveModal');
-$('moveModal').addEventListener('click',e=>{if(e.target.id==='moveModal')close('moveModal')});
-/* Mouse drag & drop (desktop) */
-let dragId=null;
-document.addEventListener('dragstart',e=>{const m=e.target.closest&&e.target.closest('.mini');if(!m)return;dragId=m.dataset.id;m.classList.add('drag');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',dragId)});
-document.addEventListener('dragend',()=>{dragId=null;document.querySelectorAll('.drag,.over').forEach(x=>x.classList.remove('drag','over'))});
-document.querySelectorAll('.zone').forEach(z=>{
-  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('over')});
-  z.addEventListener('dragleave',()=>z.classList.remove('over'));
-  z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('over');const id=e.dataTransfer.getData('text/plain')||dragId;if(id){setNote(id,{matrixZone:z.dataset.zone});renderMatrix()}});
-});
+            // FAB Visibility
+            fab.style.display = (tabId === 'inbox') ? 'flex' : 'none';
 
-/* Zen Flow — timer uses an end timestamp so it stays accurate if the app is paused */
-const zen={dur:25*60,left:25*60,end:0,iv:null,run:false};
-const zt=()=>{const s=Math.max(0,zen.left);$('zenTime').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
-function zenUI(){
-  $('zenToggle').textContent=zen.run?'Pause Focus':(zen.left<zen.dur&&zen.left>0?'Resume Focus':'Start Focus');
-  $('zenToggle').className='btn '+(zen.run?'r':'p');
-  document.body.classList.toggle('focus',zen.run);
-}
-function zenStop(){clearInterval(zen.iv);zen.iv=null;zen.run=false}
-function zenTick(){
-  zen.left=Math.max(0,Math.ceil((zen.end-Date.now())/1000));zt();
-  if(zen.left<=0){zenStop();zen.left=zen.dur;zt();zenUI();beep();toast('Focus session complete 🎉')}
-}
-$('zenToggle').onclick=()=>{
-  unlock();
-  if(zen.run){zenStop();zenUI();return}
-  if(zen.left<=0)zen.left=zen.dur;
-  zen.run=true;zen.end=Date.now()+zen.left*1000;zen.iv=setInterval(zenTick,250);zenUI();
-};
-$('zenReset').onclick=()=>{zenStop();zen.left=zen.dur;zt();zenUI()};
-$('durs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||zen.run)return;
-  document.querySelectorAll('#durs button').forEach(x=>x.classList.toggle('on',x===b));zen.dur=zen.left=+b.dataset.m*60;zt();zenUI()});
-$('zenSave').onclick=()=>{
-  const title=$('zenTitle').value.trim(),content=$('zenText').value.trim();
-  if(!title&&!content){toast('Nothing to save yet');return}
-  notes.push({id:uid(),title,content,matrixZone:'unassigned',isTrashed:false,updatedAt:Date.now()});persist();
-  $('zenTitle').value=$('zenText').value='';ls.set(DRAFT,'');
-  zenStop();zen.left=zen.dur;zt();zenUI();switchTab('inbox');toast('Saved to Inbox');
-};
-function saveDraft(){ls.set(DRAFT,JSON.stringify({t:$('zenTitle').value,c:$('zenText').value}))}
-$('zenTitle').addEventListener('input',saveDraft);$('zenText').addEventListener('input',saveDraft);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&zen.run)zenTick()});
+            // Render content based on view
+            if (tabId === 'inbox' || tabId === 'trash') {
+                renderGridNotes();
+            } else if (tabId === 'matrix') {
+                renderMatrix();
+            }
+        }
 
-/* Android back button (works inside the Capacitor app) */
-function onBack(){
-  if($('noteModal').classList.contains('show')){close('noteModal');return}
-  if($('moveModal').classList.contains('show')){close('moveModal');return}
-  if(zen.run){zenStop();zenUI();return}
-  if(tab!=='inbox'){switchTab('inbox');return}
-  try{window.Capacitor.Plugins.App.exitApp()}catch{}
-}
-try{window.Capacitor.Plugins.App.addListener('backButton',onBack)}catch{}
+        // --- GRID VIEW (Inbox & Trash) ---
+        function renderGridNotes() {
+            notesGrid.innerHTML = '';
+            
+            let filteredNotes = notes.filter(n => 
+                currentTab === 'trash' ? n.isTrashed === true : n.isTrashed === false
+            );
+            filteredNotes.sort((a, b) => b.updatedAt - a.updatedAt);
 
-/* Boot */
-load();
-try{const d=JSON.parse(ls.get(DRAFT)||'null');if(d){$('zenTitle').value=d.t||'';$('zenText').value=d.c||''}}catch{}
-zt();zenUI();switchTab('inbox');
-</script>
+            if (filteredNotes.length === 0) {
+                emptyState.classList.remove('hidden');
+                setTimeout(() => emptyState.classList.add('opacity-100'), 10);
+            } else {
+                emptyState.classList.remove('opacity-100');
+                emptyState.classList.add('hidden');
+                
+                filteredNotes.forEach((note, index) => {
+                    const card = document.createElement('div');
+                    card.className = `glass-card rounded-2xl p-5 flex flex-col group relative animate-fade-in`;
+                    card.style.animationDelay = `${index * 0.05}s`;
+                    
+                    const dateStr = new Date(note.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    let actionHtml = '';
+
+                    if (currentTab === 'trash') {
+                        actionHtml = `
+                            <button onclick="restoreNote('${note.id}')" class="p-2 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 transition-colors" title="Restore"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg></button>
+                            <button onclick="hardDelete('${note.id}')" class="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors" title="Delete Forever"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                        `;
+                    } else {
+                        actionHtml = `
+                            <button onclick="openModal('${note.id}')" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors" title="Edit"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                            <button onclick="moveToTrash('${note.id}')" class="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors" title="Move to Trash"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                        `;
+                    }
+
+                    const truncatedContent = note.content.length > 150 ? escapeHtml(note.content.substring(0, 150)) + '...' : escapeHtml(note.content);
+                    const titleText = note.title || 'Untitled Note';
+
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="font-semibold text-lg text-white truncate pr-2">${escapeHtml(titleText)}</h3>
+                            <div class="card-actions opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-[#020617]/80 backdrop-blur-md rounded-lg p-1 absolute top-3 right-3 border border-white/5">
+                                ${actionHtml}
+                            </div>
+                        </div>
+                        <p class="text-slate-300 text-sm leading-relaxed flex-1 whitespace-pre-wrap font-light opacity-90">${truncatedContent}</p>
+                        <div class="mt-5 pt-3 border-t border-white/5 flex justify-between items-center text-xs text-slate-500 font-medium tracking-wide">
+                            <span>${dateStr}</span>
+                            ${note.matrixZone !== 'unassigned' && currentTab !== 'trash' ? `<span class="px-2 py-1 rounded bg-white/5 uppercase tracking-wider text-[10px]">Zone: ${note.matrixZone.toUpperCase()}</span>` : ''}
+                        </div>
+                    `;
+                    notesGrid.appendChild(card);
+                });
+            }
+        }
+
+        // --- MATRIX DRAG & DROP VIEW ---
+        function renderMatrix() {
+            // Clear zones
+            ['unassigned', 'q1', 'q2', 'q3', 'q4'].forEach(zone => {
+                document.getElementById(`zone-${zone}`).innerHTML = '';
+            });
+
+            const activeNotes = notes.filter(n => !n.isTrashed);
+            let unassignedCount = 0;
+
+            activeNotes.forEach(note => {
+                const zoneId = note.matrixZone || 'unassigned';
+                const container = document.getElementById(`zone-${zoneId}`);
+                if(zoneId === 'unassigned') unassignedCount++;
+                
+                if (container) {
+                    const el = document.createElement('div');
+                    el.className = 'mini-card glass-panel p-3 rounded-xl border border-white/10 hover:border-white/20';
+                    el.draggable = true;
+                    el.dataset.id = note.id;
+                    el.innerHTML = `
+                        <h4 class="text-sm font-medium text-white truncate mb-1">${escapeHtml(note.title || 'Untitled')}</h4>
+                        <p class="text-xs text-slate-400 truncate">${escapeHtml(note.content)}</p>
+                    `;
+                    
+                    // Drag Events attached to elements
+                    el.addEventListener('dragstart', handleDragStart);
+                    el.addEventListener('dragend', handleDragEnd);
+
+                    container.appendChild(el);
+                }
+            });
+
+            document.getElementById('unassigned-count').textContent = unassignedCount;
+        }
+
+        let draggedElement = null;
+
+        function setupDragAndDrop() {
+            const zones = document.querySelectorAll('.matrix-zone');
+            zones.forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('dragleave', handleDragLeave);
+                zone.addEventListener('drop', handleDrop);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.id);
+            setTimeout(() => this.classList.add('dragging'), 0);
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            draggedElement = null;
+            document.querySelectorAll('.matrix-zone').forEach(z => z.classList.remove('drag-over'));
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault(); 
+            e.dataTransfer.dropEffect = 'move';
+            this.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            const id = e.dataTransfer.getData('text/plain');
+            const newZone = this.dataset.zone;
+            
+            if (id && newZone) {
+                const noteIndex = notes.findIndex(n => n.id === id);
+                if (noteIndex > -1) {
+                    notes[noteIndex].matrixZone = newZone;
+                    saveToLocalStorage();
+                    renderMatrix(); // Re-render to update counts and visual states
+                }
+            }
+        }
+
+        // --- Touch drag & drop (long-press a note, then drag it to a zone) ---
+        (function () {
+            let timer = null, ghost = null, card = null, sx = 0, sy = 0, over = null;
+            const clear = () => {
+                clearTimeout(timer); timer = null;
+                if (ghost) ghost.remove();
+                if (card) card.classList.remove('dragging');
+                document.querySelectorAll('.matrix-zone').forEach(z => z.classList.remove('drag-over'));
+                ghost = card = over = null;
+            };
+            const zoneAt = (x, y) => {
+                const el = document.elementFromPoint(x, y);
+                return el ? el.closest('.matrix-zone') : null;
+            };
+            document.addEventListener('touchstart', e => {
+                const m = e.target.closest && e.target.closest('.mini-card');
+                if (!m || e.touches.length !== 1) return;
+                const t = e.touches[0]; sx = t.clientX; sy = t.clientY;
+                timer = setTimeout(() => {
+                    card = m; card.classList.add('dragging');
+                    ghost = m.cloneNode(true); ghost.classList.add('touch-ghost');
+                    ghost.style.left = (sx - 90) + 'px'; ghost.style.top = (sy - 30) + 'px';
+                    document.body.appendChild(ghost);
+                    if (navigator.vibrate) navigator.vibrate(20);
+                }, 350);
+            }, { passive: true });
+            document.addEventListener('touchmove', e => {
+                const t = e.touches[0];
+                if (!ghost) {
+                    if (timer && Math.hypot(t.clientX - sx, t.clientY - sy) > 10) { clearTimeout(timer); timer = null; }
+                    return;
+                }
+                e.preventDefault();
+                ghost.style.left = (t.clientX - 90) + 'px'; ghost.style.top = (t.clientY - 30) + 'px';
+                const z = zoneAt(t.clientX, t.clientY);
+                if (z !== over) {
+                    if (over) over.classList.remove('drag-over');
+                    if (z) z.classList.add('drag-over');
+                    over = z;
+                }
+            }, { passive: false });
+            document.addEventListener('touchend', e => {
+                if (ghost && card) {
+                    const t = e.changedTouches[0];
+                    const z = zoneAt(t.clientX, t.clientY);
+                    const idx = notes.findIndex(n => n.id === card.dataset.id);
+                    if (z && idx > -1) {
+                        notes[idx].matrixZone = z.dataset.zone;
+                        saveToLocalStorage();
+                        clear();
+                        renderMatrix();
+                        return;
+                    }
+                }
+                clear();
+            });
+            document.addEventListener('touchcancel', clear);
+            document.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('.mini-card')) e.preventDefault(); });
+        })();
+
+        // --- ZEN FLOW TIMER ---
+        let zenInterval = null;
+        let isZenRunning = false;
+        let zenTimeLeft = 25 * 60; // 25 minutes
+        let zenEnd = 0;
+        
+        const zenDisplay = document.getElementById('zen-timer-display');
+        const zenBtnToggle = document.getElementById('zen-btn-toggle');
+        const bodyEl = document.body;
+
+        function updateZenDisplay() {
+            const m = Math.floor(zenTimeLeft / 60).toString().padStart(2, '0');
+            const s = (zenTimeLeft % 60).toString().padStart(2, '0');
+            zenDisplay.textContent = `${m}:${s}`;
+        }
+
+        function toggleZenTimer() {
+            if (isZenRunning) {
+                // Pause
+                clearInterval(zenInterval);
+                isZenRunning = false;
+                zenBtnToggle.textContent = 'Resume Focus';
+                zenBtnToggle.classList.replace('bg-red-600', 'bg-violet-600');
+                zenBtnToggle.classList.replace('hover:bg-red-500', 'hover:bg-violet-500');
+                bodyEl.classList.remove('zen-focus-active');
+            } else {
+                // Start
+                if(zenTimeLeft <= 0) zenTimeLeft = 25 * 60;
+                
+                isZenRunning = true;
+                zenBtnToggle.textContent = 'Pause Focus';
+                zenBtnToggle.classList.replace('bg-violet-600', 'bg-red-600');
+                zenBtnToggle.classList.replace('hover:bg-violet-500', 'hover:bg-red-500');
+                bodyEl.classList.add('zen-focus-active');
+
+                zenEnd = Date.now() + zenTimeLeft * 1000;
+                zenInterval = setInterval(() => {
+                    zenTimeLeft = Math.max(0, Math.ceil((zenEnd - Date.now()) / 1000));
+                    updateZenDisplay();
+                    
+                    if (zenTimeLeft <= 0) {
+                        clearInterval(zenInterval);
+                        isZenRunning = false;
+                        zenBtnToggle.textContent = 'Start Focus';
+                        zenBtnToggle.classList.replace('bg-red-600', 'bg-violet-600');
+                        zenBtnToggle.classList.replace('hover:bg-red-500', 'hover:bg-violet-500');
+                        bodyEl.classList.remove('zen-focus-active');
+                        zenBeep();
+                    }
+                }, 1000);
+            }
+        }
+
+        function zenBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                for (let i = 0; i < 3; i++) {
+                    const o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime + i * 0.4;
+                    o.frequency.value = 660; g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+                    o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + 0.3);
+                }
+            } catch (e) {}
+            if (navigator.vibrate) navigator.vibrate([250, 120, 250]);
+        }
+
+        function resetZenTimer() {
+            clearInterval(zenInterval);
+            isZenRunning = false;
+            zenTimeLeft = 25 * 60;
+            updateZenDisplay();
+            zenBtnToggle.textContent = 'Start Focus';
+            zenBtnToggle.classList.replace('bg-red-600', 'bg-violet-600');
+            zenBtnToggle.classList.replace('hover:bg-red-500', 'hover:bg-violet-500');
+            bodyEl.classList.remove('zen-focus-active');
+        }
+
+        function saveZenNote() {
+            const titleInput = document.getElementById('zen-input-title');
+            const contentInput = document.getElementById('zen-input-content');
+            
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+
+            if (!title && !content) return;
+
+            const newNote = {
+                id: generateId(),
+                title: title,
+                content: content,
+                matrixZone: 'unassigned', // defaults to inbox unassigned
+                isTrashed: false,
+                updatedAt: Date.now()
+            };
+            notes.push(newNote);
+            saveToLocalStorage();
+            
+            // Clear inputs and give visual feedback
+            titleInput.value = '';
+            contentInput.value = '';
+            
+            // Exit Zen flow and go back to inbox to see the note
+            resetZenTimer();
+            switchTab('inbox');
+        }
+
+
+        // --- MODAL & DATA ACTIONS ---
+        const modal = document.getElementById('note-modal');
+        const modalContent = document.getElementById('modal-content');
+        const inputId = document.getElementById('modal-note-id');
+        const inputTitle = document.getElementById('modal-input-title');
+        const inputContent = document.getElementById('modal-input-content');
+        const modalTitleText = document.getElementById('modal-title-text');
+
+        function openModal(id = null) {
+            if (id) {
+                const note = notes.find(n => n.id === id);
+                if (note) {
+                    inputId.value = note.id;
+                    inputTitle.value = note.title;
+                    inputContent.value = note.content;
+                    modalTitleText.textContent = 'Edit Note';
+                }
+            } else {
+                inputId.value = '';
+                inputTitle.value = '';
+                inputContent.value = '';
+                modalTitleText.textContent = 'Create Note';
+            }
+
+            modal.classList.remove('hidden');
+            void modal.offsetWidth; // trigger reflow
+            modal.classList.add('opacity-100');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+            setTimeout(() => inputTitle.focus(), 100);
+        }
+
+        function closeModal() {
+            modal.classList.remove('opacity-100');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function saveNote() {
+            const id = inputId.value;
+            const title = inputTitle.value.trim();
+            const content = inputContent.value.trim();
+
+            if (!title && !content) { closeModal(); return; }
+
+            if (id) {
+                const noteIndex = notes.findIndex(n => n.id === id);
+                if (noteIndex > -1) {
+                    notes[noteIndex].title = title;
+                    notes[noteIndex].content = content;
+                    notes[noteIndex].updatedAt = Date.now();
+                }
+            } else {
+                notes.push({
+                    id: generateId(),
+                    title: title,
+                    content: content,
+                    matrixZone: 'unassigned',
+                    isTrashed: false,
+                    updatedAt: Date.now()
+                });
+            }
+
+            saveToLocalStorage();
+            closeModal();
+            renderGridNotes(); // Only called from inbox
+        }
+
+        function moveToTrash(id) {
+            const noteIndex = notes.findIndex(n => n.id === id);
+            if (noteIndex > -1) {
+                notes[noteIndex].isTrashed = true;
+                saveToLocalStorage();
+                renderGridNotes();
+            }
+        }
+
+        function restoreNote(id) {
+            const noteIndex = notes.findIndex(n => n.id === id);
+            if (noteIndex > -1) {
+                notes[noteIndex].isTrashed = false;
+                saveToLocalStorage();
+                renderGridNotes();
+            }
+        }
+
+        function hardDelete(id) {
+            if(confirm("Permanently delete this note? This cannot be undone.")) {
+                notes = notes.filter(n => n.id !== id);
+                saveToLocalStorage();
+                renderGridNotes();
+            }
+        }
+
+        function escapeHtml(unsafe) {
+            if(!unsafe) return '';
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        // Boot
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
